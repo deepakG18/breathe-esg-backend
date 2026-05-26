@@ -1,1 +1,0 @@
-yahn pr humne jo jaan bujhkr nhi kiya vo likhenge

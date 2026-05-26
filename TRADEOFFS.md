@@ -1,0 +1,20 @@
+# Tradeoffs & Future Improvements
+
+Building a production-ready application within a strict 4-day timeline requires deliberate engineering scoping. To ensure the core data engineering pipeline, data normalization logic, and analyst dashboard workflow were 100% stable and fully deployed, the following three architectural features were intentionally left out of the prototype phase.
+
+---
+
+## 1. Local SQLite Database vs. Dedicated Production Database (PostgreSQL)
+* **The Tradeoff:** For this prototype, we utilized Django's default SQLite database file instead of provisioning and configuring a dedicated cloud database instance like PostgreSQL or MySQL.
+* **Engineering Justification:** Provisioning a cloud database requires setting up network access control lists (ACLs), handling connection pooling, and managing environment secrets. In a 4-day sprint, prioritizing database administration over the actual ESG data pipeline would be counterproductive. SQLite allowed us to test the entire multi-tenant ORM, `RawRecord` JSON processing, and relations with zero latency and zero setup overhead.
+* **Production Impact & Future Fix:** SQLite is single-user and locks the entire database during writes. For a production system ingesting high-volume automated data from multiple enterprise clients concurrently, this would cause severe performance bottlenecks. In production, we would immediately migrate to a managed PostgreSQL instance and optimize the JSON fields using PostgreSQL-specific `JSONB` indexing for rapid auditing.
+
+## 2. Absence of User Authentication & Role-Based Access Control (RBAC)
+* **The Tradeoff:** The system currently operates without a user registration, login, or session management framework (such as JWT, OAuth2, or Django Session Auth). Any user who accesses the live URL can view the dashboard, flag data, or approve rows.
+* **Engineering Justification:** The primary challenge of the Breathe ESG assignment was to demonstrate complex multi-source data ingestion, normalization (Scope 1/2/3 mapping), and data integrity workflows. Building secure authentication flows (handling password hashing, token expiration, CORS security, etc.) would consume valuable development hours without adding direct value to the core data engineering problem.
+* **Production Impact & Future Fix:** In a real deployment, leaving data open without authorization is an extreme security risk and fails basic audit compliance frameworks (like SOC2 or ISO 27001). In the production version, we would implement Django's built-in group permissions or an enterprise SSO (Single Sign-On). We would enforce strict Role-Based Access Control (RBAC) separating 'Data Contributors' (who upload raw payloads) from 'Lead Sustainability Analysts' (who alone hold the authority to approve and lock rows for final audit).
+
+## 3. Lightweight "Fix-Prompt" UI vs. Advanced Bulk-Editing & Validation Modals
+* **The Tradeoff:** On the React analyst dashboard, when a record is `FLAGGED` due to an anomaly (e.g., missing facility or zero flight distance), the interface provides a rapid browser prompt/input to update the specific metric value, rather than a complex multi-field form modal.
+* **Engineering Justification:** Building heavy frontend forms with multi-field dynamic validation (e.g., changing dates, facilities, units, and custom metadata all at once) creates a massive frontend surface area prone to UI bugs. A sleek, single-input fix keeps the user experience extremely simple for a non-engineer reviewer while ensuring the backend PATCH API updates the database state immediately.
+* **Production Impact & Future Fix:** While efficient for individual row corrections, this lightweight approach does not scale well if an analyst needs to correct hundreds of flagged rows at the same time. In production, we would replace this with an editable spreadsheet grid (like an internal data table) supporting bulk actions (e.g., "Select all flights from JAI to BOM and apply economy cabin emission factor to all").
