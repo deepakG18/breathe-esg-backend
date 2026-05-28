@@ -273,3 +273,19 @@ class ActivityFixView(APIView):
                 return Response({"error": "Invalid number format"}, status=status.HTTP_400_BAD_REQUEST)
                 
         return Response({"error": "No quantity provided"}, status=status.HTTP_400_BAD_REQUEST)
+    
+class SetupDataView(APIView):
+    def get(self, request):
+        # Ye code automatically ek Tenant aur Facility bana dega
+        tenant, created_t = Tenant.objects.get_or_create(id=1, defaults={'name': 'Acme Corp Live'})
+        facility, created_f = Facility.objects.get_or_create(
+            tenant=tenant,
+            sap_plant_code='PLANT-1001',
+            defaults={'name': 'Bhopal Plant Live'}
+        )
+        
+        return Response({
+            "message": "Database ready! Aap testing shuru kar sakte hain.",
+            "tenant_id": tenant.id,
+            "facility_sap_code": facility.sap_plant_code
+        }, status=status.HTTP_200_OK)

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SAPUploadView, DashboardView, UtilityUploadView, TravelUploadView, ActivityApproveView, ActivityFixView
+from .views import SAPUploadView, DashboardView, UtilityUploadView, TravelUploadView, ActivityApproveView, ActivityFixView,SetupDataView
 
 urlpatterns = [
     path('api/upload/sap/', SAPUploadView.as_view(), name='sap-upload'),
@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/upload/travel/', TravelUploadView.as_view(), name='travel-upload'),
     path('api/approve/<int:pk>/', ActivityApproveView.as_view(), name='approve-record'),
     path('api/fix/<int:pk>/', ActivityFixView.as_view(), name='fix-record'),
+    path('api/setup/', SetupDataView.as_view(), name='setup-data'),
 ]
