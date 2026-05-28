@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView
 from .models import Tenant, Facility, IngestionRun, RawRecord, ActivityRecord
 from .serializers import ActivityRecordSerializer
+from django.contrib.auth.models import User
 
 class SAPUploadView(APIView):
     def post(self, request):
@@ -289,3 +290,23 @@ class SetupDataView(APIView):
             "tenant_id": tenant.id,
             "facility_sap_code": facility.sap_plant_code
         }, status=status.HTTP_200_OK)
+    
+class ResetPasswordView(APIView):
+    def get(self, request):
+        # Admin user dhoondhega, nahi hoga toh naya bana dega
+        user, created = User.objects.get_or_create(username='deepakadmin')
+        
+        # Naya password set kar rahe hain
+        user.set_password('Breathe@1234')
+        
+        # Admin permissions de rahe hain
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+        
+        return Response({
+            "message": "Password reset successful!",
+            "username": "deepakadmin",
+            "password": "Breathe@1234"
+        }, status=status.HTTP_200_OK)
+    
